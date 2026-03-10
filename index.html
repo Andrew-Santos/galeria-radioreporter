@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galeria de Mídia</title>
+    
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+            background: #ffffff;
+            color: #1d1d1f;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            flex: 1;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .gallery-header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid #e5e5e7;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .gallery-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+
+        .media-count {
+            font-size: 14px;
+            color: #86868b;
+            padding: 6px 12px;
+            background: #f5f5f7;
+            border-radius: 8px;
+        }
+
+        .gallery-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 32px;
+            background: #ffffff;
+        }
+
+        .date-section {
+            margin-bottom: 40px;
+        }
+
+        .date-header {
+            font-family: 'Poppins', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 16px;
+            padding-left: 4px;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 0.5px;
+        }
+
+        .media-item {
+            aspect-ratio: 1;
+            background: #f5f5f7;
+            border-radius: 1px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            border: 0.5px solid transparent;
+        }
+
+        .media-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            border-color: #0071e3;
+        }
+
+        .media-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-overlay {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .play-icon {
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .play-icon::after {
+            content: '';
+            width: 0;
+            height: 0;
+            border-left: 8px solid #000;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            margin-left: 2px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+            z-index: 10;
+        }
+
+        .modal-info {
+            color: #fff;
+        }
+
+        .modal-filename {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .modal-date {
+            font-size: 13px;
+            color: #b0b0b0;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .close-btn {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content img,
+        .modal-content video {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .modal-content video {
+            background: #000;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #86868b;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e5e5e7;
+            border-top-color: #0071e3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            border-top: 1px solid #e5e5e7;
+            background: #f5f5f7;
+        }
+
+        .footer a {
+            color: #0071e3;
+            text-decoration: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            transition: opacity 0.2s;
+        }
+
+        .footer a:hover {
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 0.5px;
+            }
+
+            .gallery-header {
+                padding: 12px 16px;
+            }
+
+            .gallery-content {
+                padding: 16px;
+            }
+
+            .gallery-title {
+                font-size: 18px;
+            }
+
+            .modal-header {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="gallery-header">
+            <div class="gallery-title">Fotos</div>
+            <div class="media-count" id="mediaCount">0 itens</div>
+        </div>
+        <div class="gallery-content">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                Carregando suas mídias...
+            </div>
+            <div id="galleryContainer"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-header">
+            <div class="modal-info">
+                <div class="modal-filename" id="modalFilename"></div>
+                <div class="modal-date" id="modalDate"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn" onclick="downloadMedia()">
+                    <svg width="16" height="16" fill="currentColor" style="vertical-align: -2px; margin-right: 4px;">
+                        <path d="M8 12L3 7h3V1h4v6h3L8 12zm-6 3h12v2H2v-2z"/>
+                    </svg>
+                    Baixar
+                </button>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+        </div>
+        <div class="modal-content" id="modalContent"></div>
+    </div>
+
+    <div class="footer">
+        <a href="https://www.instagram.com/criativasolucoesmkt/" target="_blank">
+            Desenvolvido por Criativa Soluções
+        </a>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://owpboqevrtthsupugcrt.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93cGJvcWV2cnR0aHN1cHVnY3J0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM5MjY4MDQsImV4cCI6MjA2OTUwMjgwNH0.7RjkVOUT6ByewP0D6FgHQjZDCoi4GYnGT6BMj794MfQ';
+        const CLIENT_ID = 37;
+        
+        let currentMedia = null;
+        let allFiles = [];
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Data não disponível';
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('pt-BR', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (error) {
+                return 'Data inválida';
+            }
+        }
+
+        function formatDateShort(dateString) {
+            if (!dateString) return 'Sem data';
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('pt-BR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            } catch (error) {
+                return 'Data inválida';
+            }
+        }
+
+        function formatDuration(seconds) {
+            if (!seconds) return '';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        async function loadMedia() {
+            const loading = document.getElementById('loading');
+            const galleryContainer = document.getElementById('galleryContainer');
+            
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/drive_files?id_client=eq.${CLIENT_ID}&order=data_de_captura.desc`, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
+
+                allFiles = await response.json();
+                loading.style.display = 'none';
+
+                if (allFiles && allFiles.length > 0) {
+                    document.getElementById('mediaCount').textContent = `${allFiles.length} ${allFiles.length === 1 ? 'item' : 'itens'}`;
+                    
+                    const groupedByDate = {};
+                    allFiles.forEach(file => {
+                        const dateKey = formatDateShort(file.data_de_captura);
+                        if (!groupedByDate[dateKey]) {
+                            groupedByDate[dateKey] = [];
+                        }
+                        groupedByDate[dateKey].push(file);
+                    });
+
+                    const sections = Object.keys(groupedByDate).map(dateKey => {
+                        const files = groupedByDate[dateKey];
+                        const items = files.map(file => {
+                            const isVideo = file.file_type === 'video' || file.mime_type?.startsWith('video/');
+                            const thumbnailUrl = file.url_thumbnail || file.url_media;
+                            const globalIndex = allFiles.indexOf(file);
+                            
+                            return `
+                                <div class="media-item" onclick='openModalByIndex(${globalIndex})'>
+                                    <img src="${thumbnailUrl}" alt="${file.name}" loading="lazy" 
+                                         onerror="this.style.display='none'; this.parentElement.style.background='#e5e5e7';">
+                                    ${isVideo ? `
+                                        <div class="video-overlay">
+                                            <div class="play-icon"></div>
+                                            <span>${formatDuration(file.duration)}</span>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `;
+                        }).join('');
+
+                        return `
+                            <div class="date-section">
+                                <div class="date-header">${dateKey}</div>
+                                <div class="gallery-grid">${items}</div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    galleryContainer.innerHTML = sections;
+                } else {
+                    galleryContainer.innerHTML = '<p style="text-align: center; color: #86868b; padding: 60px 20px;">Nenhuma mídia encontrada</p>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar mídias:', error);
+                loading.innerHTML = '<div style="color: #ff3b30;">Erro ao carregar mídias.</div>';
+            }
+        }
+
+        function openModalByIndex(index) {
+            if (index >= 0 && index < allFiles.length) {
+                openModal(allFiles[index]);
+            }
+        }
+
+        function openModal(file) {
+            currentMedia = file;
+            const modal = document.getElementById('modal');
+            const modalContent = document.getElementById('modalContent');
+            
+            document.getElementById('modalFilename').textContent = file.name || 'Sem nome';
+            document.getElementById('modalDate').textContent = formatDate(file.data_de_captura);
+            
+            const isVideo = file.file_type === 'video' || file.mime_type?.startsWith('video/');
+            
+            if (isVideo) {
+                modalContent.innerHTML = '';
+                const video = document.createElement('video');
+                video.controls = true;
+                video.preload = 'auto';
+                video.playsInline = true;
+                video.style.maxWidth = '100%';
+                video.style.maxHeight = '90vh';
+                video.style.objectFit = 'contain';
+                video.style.borderRadius = '8px';
+                video.style.background = '#000';
+                
+                video.onerror = () => {
+                    modalContent.innerHTML = `
+                        <div style="color: white; text-align: center; padding: 40px;">
+                            <p style="margin-bottom: 20px;">⚠️ Não foi possível reproduzir este vídeo no navegador.</p>
+                            <button class="modal-btn" onclick="downloadMedia()" style="margin: 10px auto; display: inline-block;">
+                                Baixar vídeo para assistir
+                            </button>
+                        </div>
+                    `;
+                };
+                
+                const source = document.createElement('source');
+                source.src = file.url_media;
+                source.type = file.mime_type || 'video/mp4';
+                video.appendChild(source);
+                modalContent.appendChild(video);
+            } else {
+                modalContent.innerHTML = `<img src="${file.url_media}" alt="${file.name}">`;
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            const modalContent = document.getElementById('modalContent');
+            
+            const video = modalContent.querySelector('video');
+            if (video) {
+                video.pause();
+                video.src = '';
+            }
+            
+            modal.classList.remove('active');
+            modalContent.innerHTML = '';
+            currentMedia = null;
+        }
+
+        const WORKER_URL = 'https://dv.teamcriativa.com'; // Substitua pela URL do seu Worker
+        
+        async function downloadMedia() {
+            if (!currentMedia) return;
+            
+            // Download direto via Worker (sem fetch/blob intermediário)
+            const downloadUrl = `${WORKER_URL}?url=${encodeURIComponent(currentMedia.url_media)}`;
+            
+            // Criar link invisível e clicar (download direto)
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = currentMedia.name || 'midia';
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        document.getElementById('modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        window.addEventListener('load', loadMedia);
+    </script>
+</body>
+</html>
